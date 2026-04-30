@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Capybara Garden</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #87CEEB; }
+        canvas { display: block; }
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            pointer-events: none;
+            user-select: none;
+        }
+        .stat { margin-bottom: 10px; font-size: 1.2rem; font-weight: bold; background: rgba(0,0,0,0.2); padding: 5px 15px; border-radius: 20px; width: fit-content; }
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            text-align: center;
+            background: rgba(0,0,0,0.4);
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+        }
+        #mobile-controls {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            width: 100px;
+            height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div id="ui">
+        <div class="stat">Day: <span id="day-counter">1</span> / 5</div>
+        <div class="stat">Plant Stage: <span id="plant-stage">Seed</span></div>
+        <div class="stat">Pets: <span id="pet-counter">0</span></div>
+    </div>
+    <div id="instructions">
+        Hold Mouse/Touch to move your Capybara<br>
+        Walk into seeds to grow them • Pet Cashy by walking near
+    </div>
+    <div id="mobile-controls"></div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://esm.sh/three@0.160.0",
+            "three/examples/jsm/": "https://esm.sh/three@0.160.0/examples/jsm/",
+            "nipplejs": "https://esm.sh/nipplejs@0.10.1"
+        }
+    }
+    </script>
+    <script type="module" src="main.js"></script>
+</body>
+</html>
