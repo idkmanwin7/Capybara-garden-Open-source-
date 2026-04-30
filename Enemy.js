@@ -13,8 +13,17 @@ export class Enemy {
 
     createEnemyMesh() {
         const textureLoader = new THREE.TextureLoader();
-        const faceTex = textureLoader.load('/unused png.png');
-        const material = new THREE.SpriteMaterial({ map: faceTex, color: 0xff0000 });
+        // Default enemy skin: use the project's unused png as the standard infector sprite; switch to snow sprite if christmas mode active
+        const useSnow = (this.scene && this.scene.userData && this.scene.userData.christmas);
+        const defaultPath = useSnow ? '/enemyidlesnow.png' : '/unused png.png';
+        let faceTex = null;
+        try {
+            faceTex = textureLoader.load(defaultPath);
+        } catch (e) {
+            // Fallback: create a plain-colored sprite if texture fails to load
+            console.warn('Failed to load enemy texture, falling back to color', e);
+        }
+        const material = faceTex ? new THREE.SpriteMaterial({ map: faceTex, color: 0xff0000 }) : new THREE.SpriteMaterial({ color: 0xff0000 });
         const sprite = new THREE.Sprite(material);
         sprite.scale.set(1.5, 1.5, 1);
         return sprite;
