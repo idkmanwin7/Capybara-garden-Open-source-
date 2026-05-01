@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Capybara Garden</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #87CEEB; }
+        canvas { display: block; }
+        #ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            pointer-events: none;
+            user-select: none;
+        }
+        .stat { margin-bottom: 10px; font-size: 1.2rem; font-weight: bold; background: rgba(0,0,0,0.2); padding: 5px 15px; border-radius: 20px; width: fit-content; }
+        #instructions {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            text-align: center;
+            background: rgba(0,0,0,0.4);
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-size: 0.9rem;
+        }
+        #mobile-controls {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            width: 100px;
+            height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div id="ui">
+        <div class="stat">Day: <span id="day-counter">1</span> / 7</div>
+        <div class="stat">Plant: <span id="plant-stage">Seed</span></div>
+        <div class="stat">House: <span id="house-stage">Blueprint</span></div>
+        <div class="stat">Pets: <span id="pet-counter">0</span></div>
+    </div>
+
+    <!-- Announcement + Daily Challenge -->
+    <div id="announcement" style="position:absolute;left:20px;top:120px;color:#111;background:rgba(255,255,255,0.95);padding:10px 14px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.15);min-width:260px;">
+        <div style="font-weight:800;margin-bottom:6px;">ANNOUNCEMENT</div>
+        <div id="announcement-text" style="font-size:13px;color:#333;">Capybara Garden will no longer be updated. Please visit the privated edition at https://websim.com/@yellowerfan33/capybara-garden-privated-edition for future updates and the latest version.</div>
+        <hr style="margin:8px 0;border:none;border-top:1px solid #eee;">
+        <div style="font-size:13px;color:#333;margin-bottom:6px;">Daily Challenge</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+            <div id="challenge-timer" style="flex:1;font-weight:700;color:#2e7d32;">Starts in: 01:00:00</div>
+            <button id="claim-diamond" disabled style="padding:6px 8px;border-radius:8px;border:0;background:#bdbdbd;color:white;min-width:72px;">Claim</button>
+        </div>
+        <div style="font-size:12px;color:#666;margin-top:8px;">Give a diamond to earn points</div>
+        <div style="font-weight:700;margin-top:8px;">Points: <span id="points-counter">0</span></div>
+
+        <!-- ESC / Alerts settings + Details / Remake / Save -->
+        <div style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+                <label style="font-size:13px;color:#333;flex:1;">ESC Alerts</label>
+                <button id="esc-settings-toggle" aria-pressed="true" style="padding:6px 8px;border-radius:8px;border:0;background:#4CAF50;color:white;cursor:pointer;">On</button>
+            </div>
+            <div id="esc-details" style="font-size:12px;color:#444;background:#fafafa;padding:8px;border-radius:8px;display:none;">
+                Alerts currently show emergency overlays and play a chime on teleport/attack waves. Turning alerts off will suppress overlays and chimes.
+            </div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <button id="remake-btn" style="padding:6px 8px;border-radius:8px;border:0;background:#FF9800;color:white;cursor:pointer;">Remake</button>
+                <button id="save-state-btn" style="padding:6px 8px;border-radius:8px;border:0;background:#1976D2;color:white;cursor:pointer;">Save</button>
+                <div style="font-size:12px;color:#666;flex:1;text-align:right;">Icon: channels4_profile (4).jpg</div>
+            </div>
+        </div>
+
+        <!-- Download packaged app (creates a ZIP with a README and a placeholder exe) -->
+        <div style="margin-top:10px;display:flex;gap:8px;align-items:center;">
+            <button id="download-btn" style="padding:6px 8px;border-radius:8px;border:0;background:#1976D2;color:white;cursor:pointer;">Download Capybara Garden.zip</button>
+            <div style="font-size:12px;color:#666;">Pack icon included</div>
+        </div>
+    </div>
+    <div id="instructions">
+        Hold Mouse/Touch to move your Capybara<br>
+        Visit Builder G and Cashy • Watch your garden and house grow!
+    </div>
+    <div id="mobile-controls"></div>
+
+    <!-- Emergency Alert Overlay (hidden by default) -->
+    <div id="emergency-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;z-index:9999;">
+        <div style="background:#fff;border-radius:12px;padding:18px;max-width:420px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,0.5);display:flex;gap:12px;align-items:flex-start;">
+            <img src="/warning-sign-icon-transparent-background-free-png.webp" alt="Warning" style="width:72px;height:72px;flex:0 0 72px;">
+            <div style="flex:1;">
+                <div style="font-weight:900;font-size:18px;color:#b00020;margin-bottom:6px;">EMERGENCY ALERT</div>
+                <div id="emergency-message" style="color:#222;font-size:14px;line-height:1.3;">
+                    This is an emergency alert. Do not go into the desert — lots of enemies will come. Stay indoors and stop The Evil enemies!!!!
+                </div>
+                <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
+                    <button id="emergency-hide" style="padding:8px 12px;border-radius:8px;border:0;background:#4CAF50;color:white;">Stay Safe</button>
+                    <button id="emergency-skip" style="padding:8px 12px;border-radius:8px;border:0;background:#f44336;color:white;">Ignore</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Parrot UI -->
+    <!-- Pause Menu (toggled with Escape) -->
+    <div id="pause-menu" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);align-items:center;justify-content:center;z-index:10000;">
+        <div style="background:#fff;border-radius:12px;padding:18px;max-width:420px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,0.5);display:flex;flex-direction:column;gap:12px;align-items:center;">
+            <div style="font-weight:900;font-size:20px;color:#111;">Game Paused</div>
+            <div id="pause-msg" style="color:#444;font-size:14px;text-align:center;">Press Resume to continue or Leave Game to exit.</div>
+            <div style="display:flex;gap:12px;margin-top:8px;">
+                <button id="resume-btn" style="padding:10px 14px;border-radius:8px;border:0;background:#4CAF50;color:white;cursor:pointer;">Resume</button>
+                <button id="leave-btn" style="padding:10px 14px;border-radius:8px;border:0;background:#f44336;color:white;cursor:pointer;">Leave Game</button>
+            </div>
+            <div style="font-size:12px;color:#666;">Leaving will return to the main menu, start menu music, and download a package.</div>
+        </div>
+    </div>
+
+    <!-- Hidden menu music (plays when leaving to main menu) -->
+    <audio id="menu-music" src="buckwheat-boyz-peanut-butter-jelly-time.mp3" loop preload="auto"></audio>
+
+    <div id="parrot-ui" style="position:absolute;right:18px;top:18px;background:rgba(255,255,255,0.9);color:#111;padding:10px;border-radius:10px;min-width:180px;box-shadow:0 6px 18px rgba(0,0,0,0.2);">
+        <div style="font-weight:700;margin-bottom:6px;">Parrot</div>
+        <div style="font-size:12px;margin-bottom:6px;color:#444;">Mode</div>
+        <div style="display:flex;gap:6px;margin-bottom:8px;">
+            <button id="parrot-mode-text" style="flex:1;padding:8px;border-radius:8px;border:0;background:#4CAF50;color:white">Text</button>
+            <button id="parrot-mode-voice" style="flex:1;padding:8px;border-radius:8px;border:0;background:#ddd;color:#333">Voice</button>
+        </div>
+        <input id="parrot-text" placeholder="Enter text to parrot" style="width:100%;padding:8px;border-radius:8px;border:1px solid #ddd;margin-bottom:8px;font-size:13px;">
+        <div style="display:flex;gap:6px;">
+            <button id="parrot-action" style="flex:1;padding:8px;border-radius:8px;border:0;background:#2196F3;color:white">Speak / Record</button>
+            <button id="parrot-stop" style="width:44px;padding:8px;border-radius:8px;border:0;background:#f44336;color:white">■</button>
+        </div>
+        <div id="parrot-status" style="font-size:12px;color:#666;margin-top:8px;">Idle</div>
+    </div>
+
+    <!-- Multiplayer Chat -->
+    <div id="chat-ui" style="position:absolute;right:18px;bottom:18px;background:rgba(255,255,255,0.95);color:#111;padding:10px;border-radius:10px;min-width:260px;max-width:320px;box-shadow:0 6px 18px rgba(0,0,0,0.2);">
+        <div style="font-weight:800;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">
+            <div>Chat</div>
+            <div style="font-size:12px;color:#666;">Players: <span id="peer-count">0</span></div>
+        </div>
+        <div id="chat-messages" style="height:160px;overflow:auto;background:#fafafa;border:1px solid #eee;padding:8px;border-radius:8px;font-size:13px;margin-bottom:8px;"></div>
+        <div style="display:flex;gap:6px;">
+            <input id="chat-input" placeholder="Say hi!" style="flex:1;padding:8px;border-radius:8px;border:1px solid #ddd;font-size:13px;">
+            <button id="chat-send" style="padding:8px;border-radius:8px;border:0;background:#4CAF50;color:white;">Send</button>
+        </div>
+        <div style="margin-top:8px;font-size:12px;color:#444;">
+            <div style="font-weight:700;margin-bottom:4px;">Chat Rules</div>
+            <ol style="padding-left:18px;margin:0;color:#555;">
+                <li>Do not Swear</li>
+                <li>Do not harrass or spam</li>
+            </ol>
+            <div style="margin-top:6px;font-size:12px;color:#777;">If you break the rules you'll be banned and redirected to <a href="https://websim.com/" target="_blank">https://websim.com/</a></div>
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://esm.sh/three@0.160.0",
+            "three/examples/jsm/": "https://esm.sh/three@0.160.0/examples/jsm/",
+            "nipplejs": "https://esm.sh/nipplejs@0.10.1",
+            "jszip": "https://esm.sh/jszip@3.10.1"
+        }
+    }
+    </script>
+    <script type="module" src="main.js"></script>
+</body>
+</html>
